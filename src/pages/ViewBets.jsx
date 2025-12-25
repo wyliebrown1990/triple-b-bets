@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { AchievementBadges } from '../components/AchievementBadge'
 import { calculateAchievements } from '../utils/achievements'
+import EmojiPicker, { getStoredEmoji } from '../components/EmojiPicker'
 
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS0cgeOJ2X1AmNZtH7JBYhCgFARs1RWxgKisk3sM1PY2Af4cHKsFj4Uzer-yX8_etnQxgjTZB6NdO5/pub?output=csv'
 
@@ -70,6 +71,20 @@ export default function ViewBets() {
   const [bets, setBets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [openPicker, setOpenPicker] = useState(null) // userName of open picker
+  const [userEmojis, setUserEmojis] = useState({}) // Cache of user emojis
+
+  // Load stored emojis when bets load
+  useEffect(() => {
+    if (bets.length > 0) {
+      const emojis = {}
+      bets.forEach(bet => {
+        const stored = getStoredEmoji(bet.name)
+        if (stored) emojis[bet.name] = stored
+      })
+      setUserEmojis(emojis)
+    }
+  }, [bets])
 
   // Calculate achievements for all bettors
   const betsWithAchievements = useMemo(() => {
@@ -206,10 +221,40 @@ export default function ViewBets() {
             <div key={index} className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-sage/20 rounded-full flex items-center justify-center">
-                    <span className="text-xl font-bold text-sage-dark">
-                      {bet.name.charAt(0).toUpperCase()}
-                    </span>
+                  {/* Clickable Avatar */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setOpenPicker(openPicker === bet.name ? null : bet.name)}
+                      className="w-12 h-12 bg-sage/20 hover:bg-sage/30 rounded-full flex items-center justify-center transition-colors cursor-pointer group"
+                      title="Click to change avatar"
+                    >
+                      {userEmojis[bet.name] ? (
+                        <span className="text-2xl">{userEmojis[bet.name]}</span>
+                      ) : (
+                        <span className="text-xl font-bold text-sage-dark">
+                          {bet.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      {/* Edit indicator */}
+                      <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-gold rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                        ✏️
+                      </span>
+                    </button>
+
+                    {/* Emoji Picker */}
+                    {openPicker === bet.name && (
+                      <EmojiPicker
+                        userName={bet.name}
+                        currentEmoji={userEmojis[bet.name]}
+                        onSelect={(emoji) => {
+                          setUserEmojis(prev => ({
+                            ...prev,
+                            [bet.name]: emoji
+                          }))
+                        }}
+                        onClose={() => setOpenPicker(null)}
+                      />
+                    )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
