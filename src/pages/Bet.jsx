@@ -1,6 +1,9 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import TauntBubble from '../components/TauntBubble'
 import CountdownTimer from '../components/CountdownTimer'
+import BabyReaction, { getExpressionForPrediction } from '../components/BabyReaction'
+import SoundToggle from '../components/SoundToggle'
+import useSoundEffects from '../hooks/useSoundEffects'
 
 const TOTAL_BUCKS = 100
 const DEFAULT_ODDS = 2.0 // Default multiplier when no bets exist
@@ -163,6 +166,12 @@ export default function Bet() {
   const [showTaunt, setShowTaunt] = useState(false)
   const [tauntContext, setTauntContext] = useState(null)
   const [completedFields, setCompletedFields] = useState({})
+  const [activeField, setActiveField] = useState(null)
+  const [isTyping, setIsTyping] = useState(false)
+  const typingTimeout = useRef(null)
+
+  // Sound effects
+  const { isMuted, toggleMute, playSound } = useSoundEffects()
 
   // Fetch existing bets to calculate odds
   useEffect(() => {
@@ -219,8 +228,10 @@ export default function Bet() {
         prediction,
       })
       setShowTaunt(true)
+      playSound('pop') // Play pop sound when taunt appears
+      playSound('chime') // Also play chime for completing a field
     }
-  }, [predictions, wagers, completedFields, odds])
+  }, [predictions, wagers, completedFields, odds, playSound])
 
   const handleTauntComplete = useCallback(() => {
     setShowTaunt(false)
@@ -242,13 +253,66 @@ export default function Bet() {
     }
   }, [predictions, wagers])
 
+  // Calculate baby expression based on current active field
+  const babyExpression = useMemo(() => {
+    if (!activeField || !predictions[activeField]) return 'neutral'
+
+    const milestone = MILESTONES.find(m => m.id === activeField)
+    if (!milestone) return 'neutral'
+
+    // Get stats for this milestone from existing bets
+    const csvColumn = CSV_PREDICTION_MAP[activeField]
+    const existingValues = existingBets
+      .map(bet => bet[csvColumn])
+      .filter(v => v && v.trim() !== '')
+
+    let average = 0
+    let stdDev = 1
+    let isUnique = true
+
+    if (milestone.type === 'number' && existingValues.length > 0) {
+      const numericValues = existingValues.map(v => parseFloat(v)).filter(n => !isNaN(n))
+      if (numericValues.length > 0) {
+        average = numericValues.reduce((a, b) => a + b, 0) / numericValues.length
+        stdDev = Math.sqrt(
+          numericValues.reduce((sum, val) => sum + Math.pow(val - average, 2), 0) / numericValues.length
+        ) || 1
+      }
+    } else if (existingValues.length > 0) {
+      const lowerPrediction = predictions[activeField]?.toLowerCase().trim()
+      isUnique = !existingValues.some(v => v.toLowerCase().trim() === lowerPrediction)
+    }
+
+    return getExpressionForPrediction(
+      predictions[activeField],
+      milestone.type,
+      average,
+      stdDev,
+      isUnique
+    )
+  }, [activeField, predictions, existingBets])
+
   const handlePredictionChange = (id, value) => {
     setPredictions({ ...predictions, [id]: value })
+    setActiveField(id)
+
+    // Set typing state
+    setIsTyping(true)
+    if (typingTimeout.current) clearTimeout(typingTimeout.current)
+    typingTimeout.current = setTimeout(() => setIsTyping(false), 500)
   }
 
   const handleWagerChange = (id, value) => {
     const numValue = Math.max(0, Math.min(parseInt(value) || 0, remaining + (parseInt(wagers[id]) || 0)))
+    const oldValue = parseInt(wagers[id]) || 0
+
+    // Play coin sound when adding wager
+    if (numValue > oldValue) {
+      playSound('coin')
+    }
+
     setWagers({ ...wagers, [id]: numValue })
+    setActiveField(id)
   }
 
   const canSubmit = remaining === 0 && name.trim() !== '' && Object.keys(wagers).length > 0
@@ -293,10 +357,12 @@ export default function Bet() {
       existingBets.push(betData)
       localStorage.setItem('tripleBBets', JSON.stringify(existingBets))
 
+      playSound('fanfare') // Victory fanfare!
       setSubmitted(true)
     } catch (error) {
       console.error('Error submitting form:', error)
       // Still mark as submitted since no-cors doesn't give us response status
+      playSound('fanfare') // Victory fanfare!
       setSubmitted(true)
     }
 
@@ -581,6 +647,18 @@ export default function Bet() {
         show={showTaunt}
         context={tauntContext}
         onComplete={handleTauntComplete}
+      />
+
+      {/* Baby Reaction */}
+      <BabyReaction
+        expression={babyExpression}
+        isTyping={isTyping}
+      />
+
+      {/* Sound Toggle */}
+      <SoundToggle
+        isMuted={isMuted}
+        onToggle={toggleMute}
       />
     </div>
   )

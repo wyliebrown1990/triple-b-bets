@@ -109,8 +109,12 @@ Animated pixel art nursery elements floating in the background across all pages.
 
 ---
 
-## Sprint 2: Baby Reactions & Sound Effects
+## Sprint 2: Baby Reactions & Sound Effects ✅ COMPLETED
 **Goal:** Make the betting experience more interactive and fun
+
+**Status:** COMPLETED
+- ✅ 2A: Baby Reaction - 6 expressions (neutral, skeptical, yawning, excited, laughing, thinking)
+- ✅ 2B: Sound Effects - Web Audio API generated 8-bit sounds with mute toggle
 
 ### 2A: Baby Reaction Preview
 **Estimated Effort:** 2-3 hours
@@ -821,7 +825,7 @@ src/
 | Sprint | Features | Est. Time | Dependencies | Status |
 |--------|----------|-----------|--------------|--------|
 | 1 | Countdown Timer, Nursery Background | 3-5 hrs | None | ✅ DONE |
-| 2 | Baby Reactions, Sound Effects | 4-6 hrs | None | 🔲 TODO |
+| 2 | Baby Reactions, Sound Effects | 4-6 hrs | None | ✅ DONE |
 | 3 | Leaderboard, Achievement Badges | 5-7 hrs | None | 🔲 TODO |
 | 4 | Trash Talk, Side Bets | 6-8 hrs | New Google Forms | 🔲 TODO |
 | 5 | Admin, Results Reveal, Celebrations | 9-12 hrs | New Google Form, All other features | 🔲 TODO |
