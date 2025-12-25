@@ -394,8 +394,16 @@ const ACHIEVEMENTS = [
 
 ---
 
-## Sprint 4: Social Features
+## Sprint 4: Social Features ✅ COMPLETED
 **Goal:** Add community interaction and friendly competition
+
+**Status:** COMPLETED
+- ✅ 4A: Trash Talk Wall - Message posting with targets, playful styling
+- ✅ 4B: Side Bets - 1v1 challenges with VS layout, bragging rights points
+
+**Note:** Both pages require Google Form setup to be fully functional. Replace the placeholder URLs in:
+- `src/pages/TrashTalk.jsx` - GOOGLE_FORM_ACTION_URL, FORM_ENTRIES, GOOGLE_SHEET_CSV_URL
+- `src/pages/SideBets.jsx` - CHALLENGE_FORM_URL, CHALLENGE_ENTRIES, CHALLENGES_CSV_URL
 
 ### 4A: Trash Talk Wall
 **Estimated Effort:** 3-4 hours
@@ -831,7 +839,7 @@ src/
 | 1 | Countdown Timer, Nursery Background | 3-5 hrs | None | ✅ DONE |
 | 2 | Baby Reactions, Sound Effects | 4-6 hrs | None | ✅ DONE |
 | 3 | Leaderboard, Achievement Badges | 5-7 hrs | None | ✅ DONE |
-| 4 | Trash Talk, Side Bets | 6-8 hrs | New Google Forms | 🔲 TODO |
+| 4 | Trash Talk, Side Bets | 6-8 hrs | New Google Forms | ✅ DONE |
 | 5 | Admin, Results Reveal, Celebrations | 9-12 hrs | New Google Form, All other features | 🔲 TODO |
 
 **Total Estimated Time:** 27-38 hours

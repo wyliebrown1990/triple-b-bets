@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import Bet from './pages/Bet'
 import ViewBets from './pages/ViewBets'
 import Leaderboard from './pages/Leaderboard'
+import TrashTalk from './pages/TrashTalk'
+import SideBets from './pages/SideBets'
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
           <Route path="/bet" element={<Bet />} />
           <Route path="/bets" element={<ViewBets />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/trash-talk" element={<TrashTalk />} />
+          <Route path="/side-bets" element={<SideBets />} />
         </Routes>
         <Footer />
       </div>

@@ -13,7 +13,7 @@ export default function Header() {
           <span className="font-display text-xl font-bold text-brown">Triple B Bets</span>
         </Link>
 
-        <div className="flex gap-4 sm:gap-6">
+        <div className="flex gap-3 sm:gap-4 flex-wrap justify-end">
           <Link
             to="/"
             className={`font-medium transition-colors ${isActive('/') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
@@ -24,19 +24,31 @@ export default function Header() {
             to="/bet"
             className={`font-medium transition-colors ${isActive('/bet') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
           >
-            Place Bet
+            Bet
           </Link>
           <Link
             to="/bets"
             className={`font-medium transition-colors ${isActive('/bets') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
           >
-            View Bets
+            Bets
           </Link>
           <Link
             to="/leaderboard"
             className={`font-medium transition-colors flex items-center gap-1 ${isActive('/leaderboard') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
           >
             <span className="hidden sm:inline">🏆</span> Leaders
+          </Link>
+          <Link
+            to="/trash-talk"
+            className={`font-medium transition-colors flex items-center gap-1 ${isActive('/trash-talk') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
+          >
+            <span className="hidden sm:inline">🔥</span> Talk
+          </Link>
+          <Link
+            to="/side-bets"
+            className={`font-medium transition-colors flex items-center gap-1 ${isActive('/side-bets') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
+          >
+            <span className="hidden sm:inline">⚔️</span> 1v1
           </Link>
         </div>
       </nav>
