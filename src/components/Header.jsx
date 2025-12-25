@@ -48,7 +48,7 @@ export default function Header() {
             to="/side-bets"
             className={`font-medium transition-colors flex items-center gap-1 ${isActive('/side-bets') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
           >
-            <span className="hidden sm:inline">⚔️</span> 1v1
+            <span className="hidden sm:inline">📢</span> Calls
           </Link>
           <Link
             to="/results"

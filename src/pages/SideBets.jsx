@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
-const CHALLENGE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdQqFj_kmLxLCn3DRHZE2l8PCCs_fD-VHlQp9CCnIEktEtygA/formResponse'
-const CHALLENGE_ENTRIES = {
+const CALLOUT_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdQqFj_kmLxLCn3DRHZE2l8PCCs_fD-VHlQp9CCnIEktEtygA/formResponse'
+const CALLOUT_ENTRIES = {
   challenger: 'entry.460195111',
   opponent: 'entry.996099016',
   milestone: 'entry.1318083031',
@@ -11,7 +11,7 @@ const CHALLENGE_ENTRIES = {
   trashTalk: 'entry.132001438',
 }
 
-const CHALLENGES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtkk42UamVqxiLGgEoLPdAlr8nV0KeuvsJTc9mRYHBX_UfAnswVuh1Fcq7CZl6lgwu96VWg6RP_I0v/pub?output=csv'
+const CALLOUTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtkk42UamVqxiLGgEoLPdAlr8nV0KeuvsJTc9mRYHBX_UfAnswVuh1Fcq7CZl6lgwu96VWg6RP_I0v/pub?output=csv'
 
 // Milestone options
 const MILESTONES = [
@@ -84,17 +84,8 @@ function timeAgo(timestamp) {
   return then.toLocaleDateString()
 }
 
-// Pixel VS Badge
-function VSBadge() {
-  return (
-    <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg z-10">
-      <span className="text-white font-bold text-sm">VS</span>
-    </div>
-  )
-}
-
 export default function SideBets() {
-  const [challenges, setChallenges] = useState([])
+  const [callouts, setCallouts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [bettorNames, setBettorNames] = useState([])
@@ -106,7 +97,7 @@ export default function SideBets() {
   const [opponent, setOpponent] = useState('')
   const [milestone, setMilestone] = useState('')
   const [prediction, setPrediction] = useState('')
-  const [wager, setWager] = useState(10)
+  const [confidence, setConfidence] = useState(3)
   const [trashTalk, setTrashTalk] = useState('')
 
   // Fetch existing bettors
@@ -127,106 +118,79 @@ export default function SideBets() {
     fetchBettors()
   }, [])
 
-  // Fetch challenges
+  // Fetch callouts
   useEffect(() => {
-    async function fetchChallenges() {
+    async function fetchCallouts() {
       try {
         setLoading(true)
 
-        // Check if form is configured
-        if (CHALLENGES_CSV_URL.includes('YOUR_SHEET_ID')) {
-          // Show demo challenges if not configured
-          setChallenges([
-            {
-              challenger: 'Demo Challenger',
-              opponent: 'Demo Opponent',
-              milestone: 'crawl',
-              prediction: '7',
-              wager: 25,
-              trashTalk: 'Set up your Google Form to enable side bets!',
-              timestamp: new Date().toISOString(),
-              status: 'pending',
-            },
-          ])
-          setLoading(false)
-          return
-        }
-
-        const response = await fetch(CHALLENGES_CSV_URL)
-        if (!response.ok) throw new Error('Failed to fetch challenges')
+        const response = await fetch(CALLOUTS_CSV_URL)
+        if (!response.ok) throw new Error('Failed to fetch callouts')
 
         const csvText = await response.text()
         const data = parseCSV(csvText)
 
-        const transformedChallenges = data.map(row => ({
-          challenger: row['Challenger'] || 'Unknown',
-          opponent: row['Opponent'] || 'Unknown',
+        const transformedCallouts = data.map(row => ({
+          from: row['Challenger'] || 'Unknown',
+          target: row['Opponent'] || '',
           milestone: row['Milestone'] || '',
           prediction: row['Prediction'] || '',
-          wager: parseInt(row['Wager']) || 10,
+          confidence: parseInt(row['Wager']) || 3,
           trashTalk: row['Trash Talk'] || '',
           timestamp: row['Timestamp'],
-          status: 'pending', // Would need response sheet to track accepted
         })).reverse()
 
-        setChallenges(transformedChallenges)
+        setCallouts(transformedCallouts)
         setError(null)
       } catch (err) {
-        console.error('Error fetching challenges:', err)
-        setError('Failed to load challenges')
+        console.error('Error fetching callouts:', err)
+        setError('Failed to load callouts')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchChallenges()
+    fetchCallouts()
   }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!challenger || !opponent || !milestone || !prediction) return
-
-    // Check if form is configured
-    if (CHALLENGE_FORM_URL.includes('YOUR_FORM_ID')) {
-      alert('Please configure your Google Form URL in SideBets.jsx')
-      return
-    }
+    if (!challenger || !milestone || !prediction) return
 
     setSubmitting(true)
 
     try {
       const formData = new FormData()
-      formData.append(CHALLENGE_ENTRIES.challenger, challenger)
-      formData.append(CHALLENGE_ENTRIES.opponent, opponent)
-      formData.append(CHALLENGE_ENTRIES.milestone, milestone)
-      formData.append(CHALLENGE_ENTRIES.prediction, prediction)
-      formData.append(CHALLENGE_ENTRIES.wager, wager.toString())
-      formData.append(CHALLENGE_ENTRIES.trashTalk, trashTalk)
+      formData.append(CALLOUT_ENTRIES.challenger, challenger)
+      formData.append(CALLOUT_ENTRIES.opponent, opponent)
+      formData.append(CALLOUT_ENTRIES.milestone, milestone)
+      formData.append(CALLOUT_ENTRIES.prediction, prediction)
+      formData.append(CALLOUT_ENTRIES.wager, confidence.toString())
+      formData.append(CALLOUT_ENTRIES.trashTalk, trashTalk)
 
-      await fetch(CHALLENGE_FORM_URL, {
+      await fetch(CALLOUT_FORM_URL, {
         method: 'POST',
         body: formData,
         mode: 'no-cors',
       })
 
       // Optimistic UI update
-      setChallenges(prev => [{
-        challenger,
-        opponent,
+      setCallouts(prev => [{
+        from: challenger,
+        target: opponent,
         milestone,
         prediction,
-        wager,
+        confidence,
         trashTalk,
         timestamp: new Date().toISOString(),
-        status: 'pending',
       }, ...prev])
 
       // Reset form
       setOpponent('')
       setMilestone('')
       setPrediction('')
-      setWager(10)
+      setConfidence(3)
       setTrashTalk('')
       setShowForm(false)
     } catch (err) {
@@ -241,36 +205,46 @@ export default function SideBets() {
     return MILESTONES.find(m => m.id === id) || { name: id, emoji: '❓', unit: '' }
   }
 
+  const getConfidenceLabel = (level) => {
+    const labels = ['', 'Meh', 'Pretty Sure', 'Confident', 'Very Confident', 'LOCK IT IN']
+    return labels[level] || ''
+  }
+
+  const getConfidenceEmoji = (level) => {
+    const emojis = ['', '🤷', '🤔', '😏', '😤', '🔥']
+    return emojis[level] || '🤷'
+  }
+
   return (
     <div className="flex-1 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="font-display text-4xl font-bold text-brown mb-2">
-            Side Bets
+            Call Outs
           </h1>
           <p className="text-gray-600">
-            Challenge family members to 1v1 prediction battles!
+            Put your prediction on blast and call out the competition!
           </p>
         </div>
 
-        {/* Create Challenge Button */}
+        {/* Create Callout Button */}
         {!showForm && (
           <div className="text-center mb-8">
             <button
               onClick={() => setShowForm(true)}
               className="bg-gold hover:bg-gold-dark text-white font-bold py-3 px-8 rounded-full transition-colors inline-flex items-center gap-2"
             >
-              <span>⚔️</span> Throw Down a Challenge
+              <span>📢</span> Make a Call Out
             </button>
           </div>
         )}
 
-        {/* Create Challenge Form */}
+        {/* Create Callout Form */}
         {showForm && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border-4 border-gold/30">
             <h2 className="font-display text-xl font-bold text-brown mb-4 flex items-center gap-2">
-              <span>⚔️</span> Create Challenge
+              <span>📢</span> Call Your Shot
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -281,22 +255,21 @@ export default function SideBets() {
                     type="text"
                     value={challenger}
                     onChange={(e) => setChallenger(e.target.value)}
-                    placeholder="Who's challenging?"
+                    placeholder="Who's calling the shot?"
                     className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-brown mb-1">Challenge Who?</label>
+                  <label className="block text-sm font-bold text-brown mb-1">Call Out Who? (optional)</label>
                   <select
                     value={opponent}
                     onChange={(e) => setOpponent(e.target.value)}
                     className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none bg-white"
-                    required
                   >
-                    <option value="">Select opponent...</option>
+                    <option value="">Everyone / General</option>
                     {bettorNames.filter(n => n !== challenger).map(bettor => (
-                      <option key={bettor} value={bettor}>{bettor}</option>
+                      <option key={bettor} value={bettor}>@{bettor}</option>
                     ))}
                   </select>
                 </div>
@@ -337,19 +310,19 @@ export default function SideBets() {
 
               <div>
                 <label className="block text-sm font-bold text-brown mb-1">
-                  Bragging Rights Points: {wager}
+                  Confidence Level: {getConfidenceEmoji(confidence)} {getConfidenceLabel(confidence)}
                 </label>
                 <input
                   type="range"
                   min="1"
-                  max="50"
-                  value={wager}
-                  onChange={(e) => setWager(parseInt(e.target.value))}
+                  max="5"
+                  value={confidence}
+                  onChange={(e) => setConfidence(parseInt(e.target.value))}
                   className="w-full accent-gold"
                 />
                 <div className="flex justify-between text-xs text-gray-400">
-                  <span>1 pt</span>
-                  <span>50 pts</span>
+                  <span>Meh</span>
+                  <span>LOCK IT IN</span>
                 </div>
               </div>
 
@@ -358,7 +331,7 @@ export default function SideBets() {
                 <textarea
                   value={trashTalk}
                   onChange={(e) => setTrashTalk(e.target.value)}
-                  placeholder="Say something to your opponent..."
+                  placeholder="Back up your prediction with some smack talk..."
                   rows={2}
                   maxLength={200}
                   className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none resize-none"
@@ -375,117 +348,89 @@ export default function SideBets() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting || !challenger || !opponent || !milestone || !prediction}
+                  disabled={submitting || !challenger || !milestone || !prediction}
                   className="flex-1 bg-gold hover:bg-gold-dark disabled:bg-gray-300 text-white font-bold py-3 px-6 rounded-full transition-colors"
                 >
-                  {submitting ? 'Sending...' : 'Send Challenge'}
+                  {submitting ? 'Posting...' : 'Post Call Out'}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* Challenges List */}
+        {/* Callouts List */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="text-4xl mb-4 animate-bounce">⚔️</div>
-            <p className="text-gray-600">Loading challenges...</p>
+            <div className="text-4xl mb-4 animate-bounce">📢</div>
+            <p className="text-gray-600">Loading call outs...</p>
           </div>
         ) : error ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">😕</div>
             <p className="text-gray-600">{error}</p>
           </div>
-        ) : challenges.length === 0 ? (
+        ) : callouts.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <div className="text-6xl mb-4">🤝</div>
+            <div className="text-6xl mb-4">🎯</div>
             <h2 className="font-display text-2xl font-bold text-brown mb-2">
-              No Challenges Yet!
+              No Call Outs Yet!
             </h2>
             <p className="text-gray-600">
-              Be the first to throw down a challenge!
+              Be the first to put your prediction on blast!
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {challenges.map((challenge, index) => {
-              const milestoneInfo = getMilestoneInfo(challenge.milestone)
+          <div className="space-y-4">
+            {callouts.map((callout, index) => {
+              const milestoneInfo = getMilestoneInfo(callout.milestone)
 
               return (
                 <div
                   key={index}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden border-2 border-gray-100"
+                  className="bg-white rounded-xl shadow-md overflow-hidden border-2 border-gray-100 hover:border-gold/30 transition-colors"
                 >
-                  {/* Challenge Header */}
-                  <div className="bg-gradient-to-r from-sage/20 to-gold/20 px-6 py-3 flex items-center justify-between">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-gold/10 to-sage/10 px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">{milestoneInfo.emoji}</span>
-                      <span className="font-bold text-brown">{milestoneInfo.name}</span>
+                      <div className="w-8 h-8 bg-gold/20 rounded-full flex items-center justify-center">
+                        <span className="font-bold text-gold-dark text-sm">
+                          {callout.from.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="font-bold text-brown">{callout.from}</span>
+                      {callout.target && (
+                        <>
+                          <span className="text-gray-400">→</span>
+                          <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                            @{callout.target}
+                          </span>
+                        </>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                        challenge.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : challenge.status === 'accepted'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {challenge.status === 'pending' ? '⏳ Pending' : '✅ Accepted'}
-                      </span>
-                      <span className="text-sm text-gray-500">{timeAgo(challenge.timestamp)}</span>
-                    </div>
+                    <span className="text-xs text-gray-400">{timeAgo(callout.timestamp)}</span>
                   </div>
 
-                  {/* VS Layout */}
-                  <div className="p-6">
-                    <div className="flex items-center justify-center gap-4">
-                      {/* Challenger */}
-                      <div className="flex-1 text-center">
-                        <div className="w-16 h-16 bg-sage/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <span className="text-2xl font-bold text-sage-dark">
-                            {challenge.challenger.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-brown">{challenge.challenger}</h3>
-                        <div className="mt-2 bg-sage/10 rounded-lg p-2">
-                          <div className="text-xs text-gray-500">Prediction</div>
-                          <div className="font-bold text-sage-dark">
-                            {challenge.prediction} {milestoneInfo.unit}
-                          </div>
+                  {/* Content */}
+                  <div className="p-4">
+                    {/* Prediction */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-2xl">{milestoneInfo.emoji}</span>
+                      <div>
+                        <div className="text-sm text-gray-500">{milestoneInfo.name}</div>
+                        <div className="font-bold text-lg text-brown">
+                          {callout.prediction} {milestoneInfo.unit}
                         </div>
                       </div>
-
-                      {/* VS Badge */}
-                      <VSBadge />
-
-                      {/* Opponent */}
-                      <div className="flex-1 text-center">
-                        <div className="w-16 h-16 bg-gold/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <span className="text-2xl font-bold text-gold-dark">
-                            {challenge.opponent.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-brown">{challenge.opponent}</h3>
-                        <div className="mt-2 bg-gold/10 rounded-lg p-2">
-                          <div className="text-xs text-gray-500">Prediction</div>
-                          <div className="font-bold text-gray-400 italic">
-                            Awaiting response...
-                          </div>
-                        </div>
+                      <div className="ml-auto text-right">
+                        <div className="text-2xl">{getConfidenceEmoji(callout.confidence)}</div>
+                        <div className="text-xs text-gray-500">{getConfidenceLabel(callout.confidence)}</div>
                       </div>
-                    </div>
-
-                    {/* Wager */}
-                    <div className="text-center mt-4">
-                      <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 font-bold px-3 py-1 rounded-full text-sm">
-                        🏆 {challenge.wager} Bragging Rights Points
-                      </span>
                     </div>
 
                     {/* Trash Talk */}
-                    {challenge.trashTalk && (
-                      <div className="mt-4 bg-gray-50 rounded-lg p-3 text-center">
-                        <span className="text-gray-600 italic">"{challenge.trashTalk}"</span>
+                    {callout.trashTalk && (
+                      <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600 italic">
+                        "{callout.trashTalk}"
                       </div>
                     )}
                   </div>
