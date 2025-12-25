@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
-// TODO: Replace with your Google Form action URL and entry IDs
-const GOOGLE_FORM_ACTION_URL = 'https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse'
+const GOOGLE_FORM_ACTION_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScS6BLy6BBlKZZyy_PGCe-ywU2d1z-tsfoiPgPQdCnUvHSTZA/formResponse'
 const FORM_ENTRIES = {
-  name: 'entry.XXXXXXX',
-  message: 'entry.XXXXXXX',
-  target: 'entry.XXXXXXX',
+  name: 'entry.143146231',
+  message: 'entry.746885117',
+  target: 'entry.2112818997',
 }
 
-// TODO: Replace with your published Google Sheet CSV URL
-const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv'
+const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT_0loyPyFax5XqU0-fl2RLF26EO9eiU_S7qmtr-2j5_bMiWKoEcdNg-iH6aupnCNH7u5m36WW80qkP/pub?output=csv'
 
 // Parse CSV helper
 function parseCSV(csvText) {

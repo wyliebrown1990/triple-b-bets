@@ -1,19 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
-// TODO: Replace with your Google Form action URL and entry IDs for CHALLENGES
-const CHALLENGE_FORM_URL = 'https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse'
+const CHALLENGE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdQqFj_kmLxLCn3DRHZE2l8PCCs_fD-VHlQp9CCnIEktEtygA/formResponse'
 const CHALLENGE_ENTRIES = {
-  challenger: 'entry.XXXXXXX',
-  opponent: 'entry.XXXXXXX',
-  milestone: 'entry.XXXXXXX',
-  prediction: 'entry.XXXXXXX',
-  wager: 'entry.XXXXXXX',
-  trashTalk: 'entry.XXXXXXX',
+  challenger: 'entry.460195111',
+  opponent: 'entry.996099016',
+  milestone: 'entry.1318083031',
+  prediction: 'entry.1163229427',
+  wager: 'entry.25679231',
+  trashTalk: 'entry.132001438',
 }
 
-// TODO: Replace with your published Google Sheet CSV URL for challenges
-const CHALLENGES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv'
+const CHALLENGES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtkk42UamVqxiLGgEoLPdAlr8nV0KeuvsJTc9mRYHBX_UfAnswVuh1Fcq7CZl6lgwu96VWg6RP_I0v/pub?output=csv'
 
 // Milestone options
 const MILESTONES = [
