@@ -133,12 +133,61 @@ const PixelDog = () => (
   </svg>
 )
 
+const PixelRocker = () => (
+  <svg width="100%" height="100%" viewBox="0 0 20 24" style={{ imageRendering: 'pixelated' }}>
+    {/* Long rocker hair */}
+    <rect x="5" y="0" width="8" height="2" fill="#1a1a1a" />
+    <rect x="4" y="2" width="10" height="2" fill="#1a1a1a" />
+    <rect x="3" y="4" width="12" height="2" fill="#1a1a1a" />
+    <rect x="3" y="6" width="3" height="4" fill="#1a1a1a" />
+    <rect x="12" y="6" width="3" height="4" fill="#1a1a1a" />
+    {/* Face */}
+    <rect x="5" y="5" width="8" height="6" fill="#FFE4C4" />
+    {/* Cool sunglasses */}
+    <rect x="5" y="6" width="3" height="2" fill="#1a1a1a" />
+    <rect x="10" y="6" width="3" height="2" fill="#1a1a1a" />
+    <rect x="8" y="6" width="2" height="1" fill="#1a1a1a" />
+    {/* Sunglasses shine */}
+    <rect x="5" y="6" width="1" height="1" fill="#4169E1" />
+    <rect x="10" y="6" width="1" height="1" fill="#4169E1" />
+    {/* Goatee */}
+    <rect x="7" y="9" width="4" height="1" fill="#1a1a1a" />
+    <rect x="8" y="10" width="2" height="1" fill="#1a1a1a" />
+    {/* Smirk */}
+    <rect x="6" y="8" width="2" height="1" fill="#E8A0A0" />
+    {/* Body - leather jacket */}
+    <rect x="4" y="11" width="10" height="6" fill="#2C2C2C" />
+    <rect x="3" y="13" width="2" height="4" fill="#2C2C2C" />
+    <rect x="13" y="13" width="2" height="4" fill="#2C2C2C" />
+    {/* Jacket lapels */}
+    <rect x="5" y="11" width="2" height="3" fill="#3D3D3D" />
+    <rect x="11" y="11" width="2" height="3" fill="#3D3D3D" />
+    {/* Band t-shirt underneath */}
+    <rect x="7" y="12" width="4" height="4" fill="#8B0000" />
+    {/* Guitar */}
+    <rect x="15" y="10" width="4" height="2" fill="#8B4513" />
+    <rect x="14" y="12" width="6" height="6" fill="#CD853F" />
+    <rect x="15" y="13" width="4" height="4" fill="#2C1810" />
+    <rect x="16" y="14" width="2" height="2" fill="#1a1a1a" />
+    {/* Guitar neck */}
+    <rect x="18" y="6" width="2" height="5" fill="#8B4513" />
+    {/* Guitar strings */}
+    <rect x="16" y="12" width="1" height="5" fill="#C0C0C0" />
+    <rect x="17" y="12" width="1" height="5" fill="#C0C0C0" />
+    {/* Guitar headstock */}
+    <rect x="17" y="4" width="4" height="3" fill="#2C1810" />
+    <rect x="20" y="4" width="1" height="1" fill="#FFD700" />
+    <rect x="20" y="6" width="1" height="1" fill="#FFD700" />
+  </svg>
+)
+
 const CHARACTERS = [
   { Component: PixelGrandma, name: 'Grandma' },
   { Component: PixelGrandpa, name: 'Grandpa' },
   { Component: PixelUncle, name: 'Uncle' },
   { Component: PixelCousin, name: 'Cousin' },
-  { Component: PixelDog, name: 'Pup' },
+  { Component: PixelDog, name: 'Buster' },
+  { Component: PixelRocker, name: 'Cool Unc Wylie', specialTaunt: 'Rock on dude!' },
 ]
 
 // Taunt pools organized by context
@@ -279,7 +328,8 @@ export default function TauntBubble({ show, context, onComplete }) {
   useEffect(() => {
     if (show && context) {
       const newCharacter = getRandomCharacter()
-      const newTaunt = getRandomTaunt(context, context.wager)
+      // Use special taunt if character has one, otherwise generate random taunt
+      const newTaunt = newCharacter.specialTaunt || getRandomTaunt(context, context.wager)
       setCharacter(newCharacter)
       setTaunt(newTaunt)
       setIsVisible(true)
