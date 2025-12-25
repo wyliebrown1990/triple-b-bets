@@ -324,13 +324,18 @@ export default function Bet() {
     })
   }, [predictions, wagers])
 
-  // Get list of incomplete fields for validation message
+  // Get list of incomplete fields for validation message with specific missing items
   const incompleteFields = useMemo(() => {
-    return MILESTONES.filter(milestone => {
+    return MILESTONES.map(milestone => {
       const hasPrediction = predictions[milestone.id] && predictions[milestone.id].toString().trim() !== ''
       const hasWager = parseInt(wagers[milestone.id]) > 0
-      return !hasPrediction || !hasWager
-    })
+      if (hasPrediction && hasWager) return null
+      return {
+        ...milestone,
+        missingPrediction: !hasPrediction,
+        missingWager: !hasWager,
+      }
+    }).filter(Boolean)
   }, [predictions, wagers])
 
   const canSubmit = remaining === 0 && name.trim() !== '' && allFieldsComplete
@@ -630,6 +635,9 @@ export default function Bet() {
                           {incompleteFields.map(m => (
                             <span key={m.id} className="inline-flex items-center gap-1 bg-amber-100 px-2 py-0.5 rounded text-xs">
                               {m.emoji} {m.title}
+                              <span className="text-amber-600">
+                                ({m.missingPrediction && m.missingWager ? 'needs answer + wager' : m.missingPrediction ? 'needs answer' : 'needs wager'})
+                              </span>
                             </span>
                           ))}
                         </div>
