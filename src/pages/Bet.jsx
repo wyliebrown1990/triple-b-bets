@@ -1,6 +1,110 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
 const TOTAL_BUCKS = 100
+const DEFAULT_ODDS = 2.0 // Default multiplier when no bets exist
+const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS0cgeOJ2X1AmNZtH7JBYhCgFARs1RWxgKisk3sM1PY2Af4cHKsFj4Uzer-yX8_etnQxgjTZB6NdO5/pub?output=csv'
+
+// CSV column mapping for fetching existing bets
+const CSV_PREDICTION_MAP = {
+  firstCrawl: 'First Crawl',
+  firstWalk: 'First Walk',
+  firstWord: 'First Word',
+  firstWordAge: 'First Word Age',
+  firstBike: 'First Bike Ride',
+  firstTooth: 'First Tooth',
+  firstFood: 'First Solid Food',
+  heightAtOne: 'Height at Age 1',
+  weightAtOne: 'Weight at Age 1',
+  sleepThrough: 'Sleep Through Night',
+  wildcard: 'Wild Card Prediction',
+}
+
+// Parse CSV helpers
+function parseCSV(csvText) {
+  const lines = csvText.split('\n')
+  if (lines.length < 2) return []
+  const headers = parseCSVLine(lines[0])
+  const data = []
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i].trim() === '') continue
+    const values = parseCSVLine(lines[i])
+    const row = {}
+    headers.forEach((header, index) => {
+      row[header] = values[index] || ''
+    })
+    data.push(row)
+  }
+  return data
+}
+
+function parseCSVLine(line) {
+  const result = []
+  let current = ''
+  let inQuotes = false
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  result.push(current.trim())
+  return result
+}
+
+// Calculate odds based on existing predictions
+function calculateOdds(existingBets, milestoneId, userValue, milestoneType) {
+  if (!existingBets || existingBets.length === 0 || !userValue) {
+    return DEFAULT_ODDS
+  }
+
+  const csvColumn = CSV_PREDICTION_MAP[milestoneId]
+  const predictions = existingBets
+    .map(bet => bet[csvColumn])
+    .filter(val => val && val.trim() !== '')
+
+  if (predictions.length === 0) {
+    return DEFAULT_ODDS
+  }
+
+  if (milestoneType === 'number') {
+    // For numeric predictions, calculate odds based on distance from mean
+    const numericPredictions = predictions.map(p => parseFloat(p)).filter(n => !isNaN(n))
+    if (numericPredictions.length === 0) return DEFAULT_ODDS
+
+    const mean = numericPredictions.reduce((a, b) => a + b, 0) / numericPredictions.length
+    const stdDev = Math.sqrt(
+      numericPredictions.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / numericPredictions.length
+    ) || 1
+
+    const userNum = parseFloat(userValue)
+    if (isNaN(userNum)) return DEFAULT_ODDS
+
+    const zScore = Math.abs(userNum - mean) / stdDev
+    // Odds increase with distance from mean: 1.5x at mean, up to 10x for outliers
+    const odds = Math.min(10, Math.max(1.5, 1.5 + (zScore * 1.5)))
+    return Math.round(odds * 10) / 10
+  } else {
+    // For text predictions, odds based on frequency
+    const lowerValue = userValue.toLowerCase().trim()
+    const frequency = predictions.filter(p => p.toLowerCase().trim() === lowerValue).length
+    const totalBets = predictions.length
+
+    if (frequency === 0) {
+      // Unique prediction - high odds
+      return Math.min(10, 3 + totalBets * 0.5)
+    }
+
+    // More common = lower odds
+    const popularity = frequency / totalBets
+    const odds = Math.max(1.5, 5 * (1 - popularity))
+    return Math.round(odds * 10) / 10
+  }
+}
 
 // Google Form configuration
 const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdVMBNyU6rBM8uGDIQFzbL6YkkZ8h2wxXvdNGl-13US6w1Zyw/formResponse'
@@ -52,12 +156,48 @@ export default function Bet() {
   const [name, setName] = useState('')
   const [predictions, setPredictions] = useState({})
   const [wagers, setWagers] = useState({})
+  const [existingBets, setExistingBets] = useState([])
+  const [loadingOdds, setLoadingOdds] = useState(true)
+
+  // Fetch existing bets to calculate odds
+  useEffect(() => {
+    async function fetchExistingBets() {
+      try {
+        const response = await fetch(GOOGLE_SHEET_CSV_URL)
+        if (response.ok) {
+          const csvText = await response.text()
+          const data = parseCSV(csvText)
+          setExistingBets(data)
+        }
+      } catch (err) {
+        console.error('Error fetching existing bets for odds:', err)
+      } finally {
+        setLoadingOdds(false)
+      }
+    }
+    fetchExistingBets()
+  }, [])
 
   const totalSpent = useMemo(() => {
     return Object.values(wagers).reduce((sum, val) => sum + (parseInt(val) || 0), 0)
   }, [wagers])
 
   const remaining = TOTAL_BUCKS - totalSpent
+
+  // Calculate odds for each milestone based on user's current prediction
+  const odds = useMemo(() => {
+    const oddsMap = {}
+    MILESTONES.forEach(milestone => {
+      const userValue = predictions[milestone.id]
+      oddsMap[milestone.id] = calculateOdds(
+        existingBets,
+        milestone.id,
+        userValue,
+        milestone.type === 'textarea' ? 'text' : milestone.type
+      )
+    })
+    return oddsMap
+  }, [predictions, existingBets])
 
   const handlePredictionChange = (id, value) => {
     setPredictions({ ...predictions, [id]: value })
@@ -233,65 +373,97 @@ export default function Bet() {
               <strong>How it works:</strong> You have {TOTAL_BUCKS} Binky Bucks 🍼 to wager across your predictions.
               Bet more on predictions you're confident about! You must spend exactly all {TOTAL_BUCKS} to submit.
             </p>
+            <p className="text-sm text-brown mt-2">
+              <strong>Odds:</strong> {existingBets.length === 0
+                ? `Default ${DEFAULT_ODDS}x odds until the first bet is placed!`
+                : `Dynamic odds based on ${existingBets.length} existing bet${existingBets.length === 1 ? '' : 's'}. Pick outliers for higher payouts!`}
+            </p>
           </div>
 
           <hr className="my-6 border-gray-200" />
 
           {/* Milestones */}
-          {MILESTONES.map((milestone) => (
-            <div key={milestone.id} className={`mb-6 p-4 rounded-lg border-2 transition-all ${
-              wagers[milestone.id] > 0 ? 'border-sage bg-sage/5' : 'border-gray-100 bg-gray-50'
-            }`}>
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <label className="block font-bold text-brown">
-                  {milestone.emoji} {milestone.title}
-                </label>
-                {/* Wager input */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-sm text-gray-500">Wager:</span>
-                  <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm">🍼</span>
-                    <input
-                      type="number"
-                      value={wagers[milestone.id] || ''}
-                      onChange={(e) => handleWagerChange(milestone.id, e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      max={remaining + (parseInt(wagers[milestone.id]) || 0)}
-                      className="w-20 pl-7 pr-2 py-1 border-2 border-gray-200 rounded-lg focus:border-gold focus:outline-none text-center font-bold"
-                    />
+          {MILESTONES.map((milestone) => {
+            const currentOdds = odds[milestone.id] || DEFAULT_ODDS
+            const wagerAmount = parseInt(wagers[milestone.id]) || 0
+            const potentialPayout = Math.round(wagerAmount * currentOdds)
+
+            return (
+              <div key={milestone.id} className={`mb-6 p-4 rounded-lg border-2 transition-all ${
+                wagers[milestone.id] > 0 ? 'border-sage bg-sage/5' : 'border-gray-100 bg-gray-50'
+              }`}>
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div className="flex items-center gap-2">
+                    <label className="block font-bold text-brown">
+                      {milestone.emoji} {milestone.title}
+                    </label>
+                    {/* Odds badge */}
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      predictions[milestone.id]
+                        ? currentOdds >= 5
+                          ? 'bg-purple-100 text-purple-700'
+                          : currentOdds >= 3
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-gray-100 text-gray-600'
+                        : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {predictions[milestone.id] ? `${currentOdds}x` : `${DEFAULT_ODDS}x`}
+                    </span>
+                  </div>
+                  {/* Wager input */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-sm text-gray-500">Wager:</span>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-sm">🍼</span>
+                      <input
+                        type="number"
+                        value={wagers[milestone.id] || ''}
+                        onChange={(e) => handleWagerChange(milestone.id, e.target.value)}
+                        placeholder="0"
+                        min="0"
+                        max={remaining + (parseInt(wagers[milestone.id]) || 0)}
+                        className="w-20 pl-7 pr-2 py-1 border-2 border-gray-200 rounded-lg focus:border-gold focus:outline-none text-center font-bold"
+                      />
+                    </div>
                   </div>
                 </div>
+
+                <p className="text-sm text-gray-500 mb-2">{milestone.question}</p>
+
+                {milestone.type === 'textarea' ? (
+                  <textarea
+                    value={predictions[milestone.id] || ''}
+                    onChange={(e) => handlePredictionChange(milestone.id, e.target.value)}
+                    placeholder={milestone.placeholder}
+                    rows={3}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none transition-colors resize-none"
+                  />
+                ) : (
+                  <input
+                    type={milestone.type}
+                    value={predictions[milestone.id] || ''}
+                    onChange={(e) => handlePredictionChange(milestone.id, e.target.value)}
+                    placeholder={milestone.placeholder}
+                    step={milestone.step}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none transition-colors"
+                  />
+                )}
+
+                {wagerAmount > 0 && (
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-sm text-sage-dark font-medium">
+                      🍼 {wagerAmount} Binky Bucks wagered
+                    </span>
+                    <span className={`text-sm font-bold ${
+                      currentOdds >= 5 ? 'text-purple-600' : currentOdds >= 3 ? 'text-blue-600' : 'text-gold-dark'
+                    }`}>
+                      Potential payout: {potentialPayout} 🍼
+                    </span>
+                  </div>
+                )}
               </div>
-
-              <p className="text-sm text-gray-500 mb-2">{milestone.question}</p>
-
-              {milestone.type === 'textarea' ? (
-                <textarea
-                  value={predictions[milestone.id] || ''}
-                  onChange={(e) => handlePredictionChange(milestone.id, e.target.value)}
-                  placeholder={milestone.placeholder}
-                  rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none transition-colors resize-none"
-                />
-              ) : (
-                <input
-                  type={milestone.type}
-                  value={predictions[milestone.id] || ''}
-                  onChange={(e) => handlePredictionChange(milestone.id, e.target.value)}
-                  placeholder={milestone.placeholder}
-                  step={milestone.step}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none transition-colors"
-                />
-              )}
-
-              {wagers[milestone.id] > 0 && (
-                <div className="mt-2 text-sm text-sage-dark font-medium">
-                  🍼 {wagers[milestone.id]} Binky Bucks wagered on this prediction!
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          })}
 
           {/* Submit */}
           <div className="mt-8">

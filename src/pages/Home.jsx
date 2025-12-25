@@ -21,7 +21,7 @@ export default function Home() {
             <div className="pixel-baby-spin-wrapper">
               <PixelBaby />
             </div>
-            <p className="text-gray-600 mb-2 mt-4">Born November 2024</p>
+            <p className="text-gray-600 mb-2 mt-4">Born November 2025</p>
             <p className="text-gray-600">Proud parents: Jason & Lizzie</p>
           </div>
 
