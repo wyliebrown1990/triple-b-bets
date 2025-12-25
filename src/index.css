@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FDF6E3;
+  --color-sage: #87A878;
+  --color-sage-dark: #6B8E5E;
+  --color-gold: #D4A853;
+  --color-gold-dark: #B8923F;
+  --color-brown: #8B7355;
+  --font-family-display: Georgia, serif;
+  --font-family-body: system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-cream);
+  min-height: 100vh;
+}
