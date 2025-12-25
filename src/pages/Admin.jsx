@@ -3,17 +3,15 @@ import { useState, useEffect } from 'react'
 // Admin access key - change this to your secret key
 const ADMIN_KEY = 'babyb2025'
 
-// TODO: Replace with your Google Form action URL and entry IDs for RESULTS
-const RESULTS_FORM_URL = 'https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse'
+const RESULTS_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdzdALxvOOQtsuRICouRc7pmgY1o0XmnroaMmleCZhQykIjQA/formResponse'
 const RESULTS_ENTRIES = {
-  milestone: 'entry.XXXXXXX',
-  actualValue: 'entry.XXXXXXX',
-  dateAchieved: 'entry.XXXXXXX',
-  notes: 'entry.XXXXXXX',
+  milestone: 'entry.1794054003',
+  actualValue: 'entry.1488476335',
+  dateAchieved: 'entry.451703104',
+  notes: 'entry.2064764715',
 }
 
-// TODO: Replace with your published Google Sheet CSV URL for results
-const RESULTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv'
+const RESULTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSnHR_XKql4SuIJ4GQQPCaulfIzGCJD-yB1rRODXF3CkvccoTG_4gAoPuC4ZRucVobKa30a6V0m7In5/pub?output=csv'
 
 // Milestone definitions
 const MILESTONES = [

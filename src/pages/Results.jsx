@@ -5,8 +5,7 @@ import Confetti from '../components/Confetti'
 // Google Sheet URLs
 const BETS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS0cgeOJ2X1AmNZtH7JBYhCgFARs1RWxgKisk3sM1PY2Af4cHKsFj4Uzer-yX8_etnQxgjTZB6NdO5/pub?output=csv'
 
-// TODO: Replace with your published Results Google Sheet CSV URL
-const RESULTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR_SHEET_ID/pub?output=csv'
+const RESULTS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSnHR_XKql4SuIJ4GQQPCaulfIzGCJD-yB1rRODXF3CkvccoTG_4gAoPuC4ZRucVobKa30a6V0m7In5/pub?output=csv'
 
 // Milestone config matching the bets
 const MILESTONE_CONFIG = [
