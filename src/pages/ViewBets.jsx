@@ -102,7 +102,7 @@ export default function ViewBets() {
                     const wager = wagers[key]
 
                     return (
-                      <div key={key} className={`rounded-lg p-3 ${wager ? 'bg-sage/10 border border-sage/30' : 'bg-cream'}`}>
+                      <div key={key} className={`rounded-lg p-3 ${wager > 0 ? 'bg-sage/10 border border-sage/30' : 'bg-cream'}`}>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <span className="text-lg mr-2">{info.emoji}</span>
@@ -111,7 +111,7 @@ export default function ViewBets() {
                               {value} {info.unit}
                             </span>
                           </div>
-                          {wager && (
+                          {wager > 0 && (
                             <div className="shrink-0 bg-gold/20 text-gold-dark text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
                               🍼 {wager}
                             </div>
