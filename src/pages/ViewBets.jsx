@@ -138,6 +138,13 @@ export default function ViewBets() {
           }
         })
 
+        // Sort by timestamp, newest first
+        transformedBets.sort((a, b) => {
+          if (!a.timestamp) return 1
+          if (!b.timestamp) return -1
+          return new Date(b.timestamp) - new Date(a.timestamp)
+        })
+
         setBets(transformedBets)
         setError(null)
       } catch (err) {
