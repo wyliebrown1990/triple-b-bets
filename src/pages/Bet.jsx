@@ -2,6 +2,36 @@ import { useState, useMemo } from 'react'
 
 const TOTAL_BUCKS = 100
 
+// Google Form configuration
+const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdVMBNyU6rBM8uGDIQFzbL6YkkZ8h2wxXvdNGl-13US6w1Zyw/formResponse'
+
+// Map our field IDs to Google Form entry IDs
+const GOOGLE_FORM_FIELDS = {
+  name: 'entry.329746528',
+  firstCrawl_prediction: 'entry.1833693831',
+  firstCrawl_wager: 'entry.1361200102',
+  firstWalk_prediction: 'entry.1939748459',
+  firstWalk_wager: 'entry.318095343',
+  firstWord_prediction: 'entry.1199057283',
+  firstWord_wager: 'entry.23004871',
+  firstWordAge_prediction: 'entry.1625774436',
+  firstWordAge_wager: 'entry.1511043393',
+  firstBike_prediction: 'entry.1853320344',
+  firstBike_wager: 'entry.1064497435',
+  firstTooth_prediction: 'entry.1950085886',
+  firstTooth_wager: 'entry.1874162770',
+  firstFood_prediction: 'entry.1783022427',
+  firstFood_wager: 'entry.1254724568',
+  heightAtOne_prediction: 'entry.1345837414',
+  heightAtOne_wager: 'entry.53518850',
+  weightAtOne_prediction: 'entry.1613054389',
+  weightAtOne_wager: 'entry.1305594979',
+  sleepThrough_prediction: 'entry.335764234',
+  sleepThrough_wager: 'entry.769132592',
+  wildcard_prediction: 'entry.249368260',
+  wildcard_wager: 'entry.890593987',
+}
+
 const MILESTONES = [
   { id: 'firstCrawl', emoji: '🐛', title: 'First Crawl', question: 'At what age (in months) will He Who Shall Not Be Named first crawl?', type: 'number', placeholder: 'e.g., 7', min: 1, max: 24, unit: 'months' },
   { id: 'firstWalk', emoji: '🚶', title: 'First Walk', question: 'At what age (in months) will He Who Shall Not Be Named take his first steps?', type: 'number', placeholder: 'e.g., 12', min: 6, max: 24, unit: 'months' },
@@ -18,6 +48,7 @@ const MILESTONES = [
 
 export default function Bet() {
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [name, setName] = useState('')
   const [predictions, setPredictions] = useState({})
   const [wagers, setWagers] = useState({})
@@ -41,21 +72,52 @@ export default function Bet() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!canSubmit) return
+    if (!canSubmit || submitting) return
 
-    const betData = {
-      name,
-      predictions,
-      wagers,
-      totalSpent,
-      submittedAt: new Date().toISOString(),
+    setSubmitting(true)
+
+    // Build form data for Google Forms
+    const formData = new FormData()
+    formData.append(GOOGLE_FORM_FIELDS.name, name)
+
+    // Add all predictions and wagers
+    MILESTONES.forEach((milestone) => {
+      const predictionKey = `${milestone.id}_prediction`
+      const wagerKey = `${milestone.id}_wager`
+
+      formData.append(GOOGLE_FORM_FIELDS[predictionKey], predictions[milestone.id] || '')
+      formData.append(GOOGLE_FORM_FIELDS[wagerKey], wagers[milestone.id] || 0)
+    })
+
+    try {
+      // Submit to Google Forms (using no-cors mode since Google Forms doesn't return CORS headers)
+      await fetch(GOOGLE_FORM_URL, {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors', // Required for Google Forms
+      })
+
+      // Also save to localStorage for the View Bets page
+      const betData = {
+        name,
+        predictions,
+        wagers,
+        totalSpent,
+        submittedAt: new Date().toISOString(),
+      }
+
+      const existingBets = JSON.parse(localStorage.getItem('tripleBBets') || '[]')
+      existingBets.push(betData)
+      localStorage.setItem('tripleBBets', JSON.stringify(existingBets))
+
+      setSubmitted(true)
+    } catch (error) {
+      console.error('Error submitting form:', error)
+      // Still mark as submitted since no-cors doesn't give us response status
+      setSubmitted(true)
     }
 
-    const existingBets = JSON.parse(localStorage.getItem('tripleBBets') || '[]')
-    existingBets.push(betData)
-    localStorage.setItem('tripleBBets', JSON.stringify(existingBets))
-
-    setSubmitted(true)
+    setSubmitting(false)
   }
 
   if (submitted) {
@@ -243,14 +305,18 @@ export default function Bet() {
 
             <button
               type="submit"
-              disabled={!canSubmit}
+              disabled={!canSubmit || submitting}
               className={`w-full font-bold py-4 px-6 rounded-full text-lg transition-all transform shadow-lg ${
-                canSubmit
+                canSubmit && !submitting
                   ? 'bg-gold hover:bg-gold-dark text-white hover:scale-[1.02]'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {canSubmit ? 'Lock In My Bets! 🔒' : `Spend All ${TOTAL_BUCKS} Binky Bucks First!`}
+              {submitting
+                ? 'Submitting...'
+                : canSubmit
+                  ? 'Lock In My Bets! 🔒'
+                  : `Spend All ${TOTAL_BUCKS} Binky Bucks First!`}
             </button>
 
             <p className="text-center text-sm text-gray-500 mt-4">
