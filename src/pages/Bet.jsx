@@ -152,7 +152,7 @@ const MILESTONES = [
   { id: 'heightAtOne', emoji: '📏', title: 'Height at Age 1', question: 'How tall (in inches) will He Who Shall Not Be Named be at his first birthday?', type: 'number', placeholder: 'e.g., 30', step: 0.5, unit: 'inches' },
   { id: 'weightAtOne', emoji: '⚖️', title: 'Weight at Age 1', question: 'How much (in pounds) will He Who Shall Not Be Named weigh at his first birthday?', type: 'number', placeholder: 'e.g., 22', step: 0.5, unit: 'lbs' },
   { id: 'sleepThrough', emoji: '😴', title: 'Sleep Through Night', question: 'At what age (in weeks) will He Who Shall Not Be Named first sleep through the night (6+ hours)?', type: 'number', placeholder: 'e.g., 12', unit: 'weeks' },
-  { id: 'wildcard', emoji: '🎲', title: 'Wildcard Prediction', question: 'Make any other prediction about He Who Shall Not Be Named\'s first year!', type: 'textarea', placeholder: 'e.g., He\'ll say \'no\' before \'yes\', He\'ll prefer dogs over cats...' },
+  { id: 'wildcard', emoji: '🎲', title: 'Wildcard Prediction', question: 'Make any prediction about Baby B\'s first year!', type: 'textarea', placeholder: 'e.g., Will say "no" before "yes", Will prefer dogs over cats, Will have mom\'s eyes...', required: true },
 ]
 
 export default function Bet() {
@@ -315,7 +315,25 @@ export default function Bet() {
     setActiveField(id)
   }
 
-  const canSubmit = remaining === 0 && name.trim() !== '' && Object.keys(wagers).length > 0
+  // Check if all milestones have predictions and wagers
+  const allFieldsComplete = useMemo(() => {
+    return MILESTONES.every(milestone => {
+      const hasPrediction = predictions[milestone.id] && predictions[milestone.id].toString().trim() !== ''
+      const hasWager = parseInt(wagers[milestone.id]) > 0
+      return hasPrediction && hasWager
+    })
+  }, [predictions, wagers])
+
+  // Get list of incomplete fields for validation message
+  const incompleteFields = useMemo(() => {
+    return MILESTONES.filter(milestone => {
+      const hasPrediction = predictions[milestone.id] && predictions[milestone.id].toString().trim() !== ''
+      const hasWager = parseInt(wagers[milestone.id]) > 0
+      return !hasPrediction || !hasWager
+    })
+  }, [predictions, wagers])
+
+  const canSubmit = remaining === 0 && name.trim() !== '' && allFieldsComplete
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -603,9 +621,19 @@ export default function Bet() {
                       <span className="text-amber-500">○</span> Spend all {remaining} remaining Binky Bucks on your predictions
                     </li>
                   )}
-                  {Object.keys(wagers).length === 0 && remaining === 0 && (
-                    <li className="flex items-center gap-2">
-                      <span className="text-amber-500">○</span> Add at least one wager to a prediction
+                  {incompleteFields.length > 0 && (
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-500 mt-0.5">○</span>
+                      <div>
+                        <span>Complete all predictions with wagers:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {incompleteFields.map(m => (
+                            <span key={m.id} className="inline-flex items-center gap-1 bg-amber-100 px-2 py-0.5 rounded text-xs">
+                              {m.emoji} {m.title}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     </li>
                   )}
                 </ul>
