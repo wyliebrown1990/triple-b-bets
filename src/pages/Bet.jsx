@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import TauntBubble from '../components/TauntBubble'
 
 const TOTAL_BUCKS = 100
 const DEFAULT_ODDS = 2.0 // Default multiplier when no bets exist
@@ -158,6 +159,9 @@ export default function Bet() {
   const [wagers, setWagers] = useState({})
   const [existingBets, setExistingBets] = useState([])
   const [loadingOdds, setLoadingOdds] = useState(true)
+  const [showTaunt, setShowTaunt] = useState(false)
+  const [tauntContext, setTauntContext] = useState(null)
+  const [completedFields, setCompletedFields] = useState({})
 
   // Fetch existing bets to calculate odds
   useEffect(() => {
@@ -198,6 +202,44 @@ export default function Bet() {
     })
     return oddsMap
   }, [predictions, existingBets])
+
+  // Trigger taunt when a field is completed (has prediction AND wager)
+  const triggerTaunt = useCallback((milestoneId) => {
+    const prediction = predictions[milestoneId]
+    const wager = parseInt(wagers[milestoneId]) || 0
+
+    // Only trigger if field is complete and hasn't been taunted yet
+    if (prediction && wager > 0 && !completedFields[milestoneId]) {
+      setCompletedFields(prev => ({ ...prev, [milestoneId]: true }))
+      setTauntContext({
+        milestoneId,
+        odds: odds[milestoneId] || DEFAULT_ODDS,
+        wager,
+        prediction,
+      })
+      setShowTaunt(true)
+    }
+  }, [predictions, wagers, completedFields, odds])
+
+  const handleTauntComplete = useCallback(() => {
+    setShowTaunt(false)
+    setTauntContext(null)
+  }, [])
+
+  // Reset completed status if user clears a field
+  useEffect(() => {
+    const newCompleted = { ...completedFields }
+    let changed = false
+    Object.keys(completedFields).forEach(id => {
+      if (!predictions[id] || !(parseInt(wagers[id]) > 0)) {
+        delete newCompleted[id]
+        changed = true
+      }
+    })
+    if (changed) {
+      setCompletedFields(newCompleted)
+    }
+  }, [predictions, wagers])
 
   const handlePredictionChange = (id, value) => {
     setPredictions({ ...predictions, [id]: value })
@@ -419,6 +461,7 @@ export default function Bet() {
                         type="number"
                         value={wagers[milestone.id] || ''}
                         onChange={(e) => handleWagerChange(milestone.id, e.target.value)}
+                        onBlur={() => triggerTaunt(milestone.id)}
                         placeholder="0"
                         min="0"
                         max={remaining + (parseInt(wagers[milestone.id]) || 0)}
@@ -434,6 +477,7 @@ export default function Bet() {
                   <textarea
                     value={predictions[milestone.id] || ''}
                     onChange={(e) => handlePredictionChange(milestone.id, e.target.value)}
+                    onBlur={() => triggerTaunt(milestone.id)}
                     placeholder={milestone.placeholder}
                     rows={3}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none transition-colors resize-none"
@@ -443,6 +487,7 @@ export default function Bet() {
                     type={milestone.type}
                     value={predictions[milestone.id] || ''}
                     onChange={(e) => handlePredictionChange(milestone.id, e.target.value)}
+                    onBlur={() => triggerTaunt(milestone.id)}
                     placeholder={milestone.placeholder}
                     step={milestone.step}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none transition-colors"
@@ -495,6 +540,13 @@ export default function Bet() {
           </div>
         </form>
       </div>
+
+      {/* Taunt Bubble */}
+      <TauntBubble
+        show={showTaunt}
+        context={tauntContext}
+        onComplete={handleTauntComplete}
+      />
     </div>
   )
 }
