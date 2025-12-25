@@ -33,16 +33,16 @@ const GOOGLE_FORM_FIELDS = {
 }
 
 const MILESTONES = [
-  { id: 'firstCrawl', emoji: '🐛', title: 'First Crawl', question: 'At what age (in months) will He Who Shall Not Be Named first crawl?', type: 'number', placeholder: 'e.g., 7', min: 1, max: 24, unit: 'months' },
-  { id: 'firstWalk', emoji: '🚶', title: 'First Walk', question: 'At what age (in months) will He Who Shall Not Be Named take his first steps?', type: 'number', placeholder: 'e.g., 12', min: 6, max: 24, unit: 'months' },
+  { id: 'firstCrawl', emoji: '🐛', title: 'First Crawl', question: 'At what age (in months) will He Who Shall Not Be Named first crawl?', type: 'number', placeholder: 'e.g., 7', unit: 'months' },
+  { id: 'firstWalk', emoji: '🚶', title: 'First Walk', question: 'At what age (in months) will He Who Shall Not Be Named take his first steps?', type: 'number', placeholder: 'e.g., 12', unit: 'months' },
   { id: 'firstWord', emoji: '🗣️', title: 'First Word', question: 'What will be He Who Shall Not Be Named\'s first word?', type: 'text', placeholder: 'e.g., Dada, Mama, Ball' },
-  { id: 'firstWordAge', emoji: '🗣️', title: 'First Word Age', question: 'At what age (in months) will the first word be spoken?', type: 'number', placeholder: 'e.g., 10', min: 6, max: 24, unit: 'months', isSubQuestion: true },
-  { id: 'firstBike', emoji: '🚴', title: 'First Bike Ride', question: 'At what age (in years) will He Who Shall Not Be Named ride a bike without training wheels?', type: 'number', placeholder: 'e.g., 5', min: 2, max: 10, step: 0.5, unit: 'years' },
-  { id: 'firstTooth', emoji: '🦷', title: 'First Tooth', question: 'At what age (in months) will He Who Shall Not Be Named\'s first tooth appear?', type: 'number', placeholder: 'e.g., 6', min: 3, max: 18, unit: 'months' },
+  { id: 'firstWordAge', emoji: '🗣️', title: 'First Word Age', question: 'At what age (in months) will the first word be spoken?', type: 'number', placeholder: 'e.g., 10', unit: 'months' },
+  { id: 'firstBike', emoji: '🚴', title: 'First Bike Ride', question: 'At what age (in years) will He Who Shall Not Be Named ride a bike without training wheels?', type: 'number', placeholder: 'e.g., 5', step: 0.5, unit: 'years' },
+  { id: 'firstTooth', emoji: '🦷', title: 'First Tooth', question: 'At what age (in months) will He Who Shall Not Be Named\'s first tooth appear?', type: 'number', placeholder: 'e.g., 6', unit: 'months' },
   { id: 'firstFood', emoji: '🍎', title: 'First Solid Food', question: 'What will be He Who Shall Not Be Named\'s first solid food?', type: 'text', placeholder: 'e.g., Banana, Rice cereal, Avocado' },
-  { id: 'heightAtOne', emoji: '📏', title: 'Height at Age 1', question: 'How tall (in inches) will He Who Shall Not Be Named be at his first birthday?', type: 'number', placeholder: 'e.g., 30', min: 24, max: 36, step: 0.5, unit: 'inches' },
-  { id: 'weightAtOne', emoji: '⚖️', title: 'Weight at Age 1', question: 'How much (in pounds) will He Who Shall Not Be Named weigh at his first birthday?', type: 'number', placeholder: 'e.g., 22', min: 15, max: 35, step: 0.5, unit: 'lbs' },
-  { id: 'sleepThrough', emoji: '😴', title: 'Sleep Through Night', question: 'At what age (in weeks) will He Who Shall Not Be Named first sleep through the night (6+ hours)?', type: 'number', placeholder: 'e.g., 12', min: 4, max: 52, unit: 'weeks' },
+  { id: 'heightAtOne', emoji: '📏', title: 'Height at Age 1', question: 'How tall (in inches) will He Who Shall Not Be Named be at his first birthday?', type: 'number', placeholder: 'e.g., 30', step: 0.5, unit: 'inches' },
+  { id: 'weightAtOne', emoji: '⚖️', title: 'Weight at Age 1', question: 'How much (in pounds) will He Who Shall Not Be Named weigh at his first birthday?', type: 'number', placeholder: 'e.g., 22', step: 0.5, unit: 'lbs' },
+  { id: 'sleepThrough', emoji: '😴', title: 'Sleep Through Night', question: 'At what age (in weeks) will He Who Shall Not Be Named first sleep through the night (6+ hours)?', type: 'number', placeholder: 'e.g., 12', unit: 'weeks' },
   { id: 'wildcard', emoji: '🎲', title: 'Wildcard Prediction', question: 'Make any other prediction about He Who Shall Not Be Named\'s first year!', type: 'textarea', placeholder: 'e.g., He\'ll say \'no\' before \'yes\', He\'ll prefer dogs over cats...' },
 ]
 
@@ -280,8 +280,6 @@ export default function Bet() {
                   value={predictions[milestone.id] || ''}
                   onChange={(e) => handlePredictionChange(milestone.id, e.target.value)}
                   placeholder={milestone.placeholder}
-                  min={milestone.min}
-                  max={milestone.max}
                   step={milestone.step}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none transition-colors"
                 />
