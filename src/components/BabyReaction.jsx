@@ -204,33 +204,34 @@ export default function BabyReaction({ expression = 'neutral', isTyping = false 
 
   return (
     <div className="baby-reaction fixed bottom-4 left-4 z-50 pointer-events-none">
-      <div className="relative">
-        {/* Speech bubble */}
-        {showLabel && label && (
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 animate-fade-in">
-            <div className="bg-white border-2 border-brown rounded-lg px-3 py-1 text-xs font-bold text-brown whitespace-nowrap shadow-lg">
-              {label}
-              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-brown" />
-            </div>
-          </div>
-        )}
-
+      <div className="relative flex items-end gap-2">
         {/* Baby face */}
         <div className={`
           w-16 h-16 sm:w-20 sm:h-20
-          transition-transform duration-300
+          transition-transform duration-300 shrink-0
           ${currentExpression === 'excited' ? 'animate-bounce' : ''}
           ${currentExpression === 'laughing' ? 'animate-wiggle' : ''}
           ${currentExpression === 'thinking' ? 'animate-pulse' : ''}
         `}>
           <Component />
         </div>
+
+        {/* Speech bubble - positioned to the right of baby */}
+        {showLabel && label && (
+          <div className="animate-fade-in mb-4">
+            <div className="relative bg-white border-2 border-brown rounded-lg px-3 py-1 text-xs font-bold text-brown whitespace-nowrap shadow-lg">
+              {label}
+              {/* Arrow pointing left to baby */}
+              <div className="absolute top-1/2 right-full -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-t-transparent border-b-transparent border-r-brown" />
+            </div>
+          </div>
+        )}
       </div>
 
       <style>{`
         @keyframes fade-in {
-          from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+          from { opacity: 0; transform: translateX(-10px); }
+          to { opacity: 1; transform: translateX(0); }
         }
         .animate-fade-in {
           animation: fade-in 0.2s ease-out forwards;

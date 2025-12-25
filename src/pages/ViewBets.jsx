@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { AchievementBadges } from '../components/AchievementBadge'
+import { calculateAchievements } from '../utils/achievements'
 
 const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS0cgeOJ2X1AmNZtH7JBYhCgFARs1RWxgKisk3sM1PY2Af4cHKsFj4Uzer-yX8_etnQxgjTZB6NdO5/pub?output=csv'
 
@@ -68,6 +70,14 @@ export default function ViewBets() {
   const [bets, setBets] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  // Calculate achievements for all bettors
+  const betsWithAchievements = useMemo(() => {
+    return bets.map((bet, index) => ({
+      ...bet,
+      achievements: calculateAchievements(bet, bets, index)
+    }))
+  }, [bets])
 
   useEffect(() => {
     async function fetchBets() {
@@ -192,7 +202,7 @@ export default function ViewBets() {
         </div>
 
         <div className="grid gap-6">
-          {bets.map((bet, index) => (
+          {betsWithAchievements.map((bet, index) => (
             <div key={index} className="bg-white rounded-2xl shadow-lg p-6">
               <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
@@ -202,7 +212,12 @@ export default function ViewBets() {
                     </span>
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-brown">{bet.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-lg text-brown">{bet.name}</h3>
+                      {bet.achievements && bet.achievements.length > 0 && (
+                        <AchievementBadges achievements={bet.achievements} size="small" maxDisplay={3} />
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">
                       {bet.timestamp ? `Submitted ${new Date(bet.timestamp).toLocaleDateString()}` : 'Recently submitted'}
                     </p>

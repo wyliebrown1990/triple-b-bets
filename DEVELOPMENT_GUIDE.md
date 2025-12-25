@@ -233,8 +233,12 @@ const {
 
 ---
 
-## Sprint 3: Leaderboard & Achievement Badges
+## Sprint 3: Leaderboard & Achievement Badges ✅ COMPLETED
 **Goal:** Add competitive elements and recognition
+
+**Status:** COMPLETED
+- ✅ 3A: Leaderboard Page - Pixel podium, rankings table, stat cards
+- ✅ 3B: Achievement Badges - 8 achievements, tooltips, displayed on View Bets
 
 ### 3A: Leaderboard Page
 **Estimated Effort:** 3-4 hours
@@ -826,7 +830,7 @@ src/
 |--------|----------|-----------|--------------|--------|
 | 1 | Countdown Timer, Nursery Background | 3-5 hrs | None | ✅ DONE |
 | 2 | Baby Reactions, Sound Effects | 4-6 hrs | None | ✅ DONE |
-| 3 | Leaderboard, Achievement Badges | 5-7 hrs | None | 🔲 TODO |
+| 3 | Leaderboard, Achievement Badges | 5-7 hrs | None | ✅ DONE |
 | 4 | Trash Talk, Side Bets | 6-8 hrs | New Google Forms | 🔲 TODO |
 | 5 | Admin, Results Reveal, Celebrations | 9-12 hrs | New Google Form, All other features | 🔲 TODO |
 

@@ -5,6 +5,7 @@ import NurseryBackground from './components/NurseryBackground'
 import Home from './pages/Home'
 import Bet from './pages/Bet'
 import ViewBets from './pages/ViewBets'
+import Leaderboard from './pages/Leaderboard'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/bet" element={<Bet />} />
           <Route path="/bets" element={<ViewBets />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
         </Routes>
         <Footer />
       </div>

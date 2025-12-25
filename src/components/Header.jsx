@@ -13,7 +13,7 @@ export default function Header() {
           <span className="font-display text-xl font-bold text-brown">Triple B Bets</span>
         </Link>
 
-        <div className="flex gap-6">
+        <div className="flex gap-4 sm:gap-6">
           <Link
             to="/"
             className={`font-medium transition-colors ${isActive('/') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
@@ -31,6 +31,12 @@ export default function Header() {
             className={`font-medium transition-colors ${isActive('/bets') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
           >
             View Bets
+          </Link>
+          <Link
+            to="/leaderboard"
+            className={`font-medium transition-colors flex items-center gap-1 ${isActive('/leaderboard') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
+          >
+            <span className="hidden sm:inline">🏆</span> Leaders
           </Link>
         </div>
       </nav>
