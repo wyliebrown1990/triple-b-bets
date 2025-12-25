@@ -55,30 +55,6 @@ const PixelGrandpa = () => (
   </svg>
 )
 
-const PixelUncle = () => (
-  <svg width="100%" height="100%" viewBox="0 0 16 20" style={{ imageRendering: 'pixelated' }}>
-    {/* Baseball cap */}
-    <rect x="3" y="1" width="10" height="2" fill="#DC143C" />
-    <rect x="2" y="3" width="12" height="2" fill="#DC143C" />
-    <rect x="2" y="5" width="3" height="1" fill="#DC143C" />
-    {/* Face */}
-    <rect x="4" y="5" width="8" height="6" fill="#FFE4C4" />
-    <rect x="3" y="7" width="1" height="2" fill="#FFE4C4" />
-    <rect x="12" y="7" width="1" height="2" fill="#FFE4C4" />
-    {/* Sunglasses */}
-    <rect x="4" y="6" width="3" height="2" fill="#1a1a1a" />
-    <rect x="9" y="6" width="3" height="2" fill="#1a1a1a" />
-    <rect x="7" y="6" width="2" height="1" fill="#1a1a1a" />
-    {/* Smirk */}
-    <rect x="7" y="9" width="3" height="1" fill="#E8A0A0" />
-    <rect x="10" y="8" width="1" height="1" fill="#E8A0A0" />
-    {/* Body - t-shirt */}
-    <rect x="4" y="11" width="8" height="6" fill="#228B22" />
-    <rect x="3" y="13" width="2" height="3" fill="#228B22" />
-    <rect x="11" y="13" width="2" height="3" fill="#228B22" />
-  </svg>
-)
-
 const PixelCousin = () => (
   <svg width="100%" height="100%" viewBox="0 0 16 20" style={{ imageRendering: 'pixelated' }}>
     {/* Spiky hair */}
@@ -184,7 +160,6 @@ const PixelRocker = () => (
 const CHARACTERS = [
   { Component: PixelGrandma, name: 'Grandma' },
   { Component: PixelGrandpa, name: 'Grandpa' },
-  { Component: PixelUncle, name: 'Uncle' },
   { Component: PixelCousin, name: 'Cousin' },
   { Component: PixelDog, name: 'Buster' },
   { Component: PixelRocker, name: 'Cool Unc Wylie', specialTaunt: 'Rock on dude!' },
