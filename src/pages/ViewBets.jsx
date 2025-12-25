@@ -1,27 +1,161 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
-const MILESTONE_INFO = {
-  firstCrawl: { emoji: '🐛', title: 'First Crawl', unit: 'months' },
-  firstWalk: { emoji: '🚶', title: 'First Walk', unit: 'months' },
-  firstWord: { emoji: '🗣️', title: 'First Word', unit: '' },
-  firstWordAge: { emoji: '🗣️', title: 'First Word Age', unit: 'months' },
-  firstBike: { emoji: '🚴', title: 'First Bike', unit: 'years' },
-  firstTooth: { emoji: '🦷', title: 'First Tooth', unit: 'months' },
-  firstFood: { emoji: '🍎', title: 'First Food', unit: '' },
-  heightAtOne: { emoji: '📏', title: 'Height at 1', unit: 'inches' },
-  weightAtOne: { emoji: '⚖️', title: 'Weight at 1', unit: 'lbs' },
-  sleepThrough: { emoji: '😴', title: 'Sleep Through', unit: 'weeks' },
-  wildcard: { emoji: '🎲', title: 'Wildcard', unit: '' },
+const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSS0cgeOJ2X1AmNZtH7JBYhCgFARs1RWxgKisk3sM1PY2Af4cHKsFj4Uzer-yX8_etnQxgjTZB6NdO5/pub?output=csv'
+
+// Map CSV columns to our display format
+const MILESTONE_CONFIG = [
+  { csvPrediction: 'First Crawl', csvWager: 'First Crawl Wager', emoji: '🐛', title: 'First Crawl', unit: 'months' },
+  { csvPrediction: 'First Walk', csvWager: 'First Walk Wager', emoji: '🚶', title: 'First Walk', unit: 'months' },
+  { csvPrediction: 'First Word', csvWager: 'First Word Wager', emoji: '🗣️', title: 'First Word', unit: '' },
+  { csvPrediction: 'First Word Age', csvWager: 'First Word Age Wager', emoji: '🗣️', title: 'First Word Age', unit: 'months' },
+  { csvPrediction: 'First Bike Ride', csvWager: 'First Bike Ride Wager', emoji: '🚴', title: 'First Bike', unit: 'years' },
+  { csvPrediction: 'First Tooth', csvWager: 'First Tooth Wager', emoji: '🦷', title: 'First Tooth', unit: 'months' },
+  { csvPrediction: 'First Solid Food', csvWager: 'First Solid Food Wager', emoji: '🍎', title: 'First Food', unit: '' },
+  { csvPrediction: 'Height at Age 1', csvWager: 'Height at Age 1 Wager', emoji: '📏', title: 'Height at 1', unit: 'inches' },
+  { csvPrediction: 'Weight at Age 1', csvWager: 'Weight at Age 1 Wager', emoji: '⚖️', title: 'Weight at 1', unit: 'lbs' },
+  { csvPrediction: 'Sleep Through Night', csvWager: 'Sleep Through Night Wager', emoji: '😴', title: 'Sleep Through', unit: 'weeks' },
+  { csvPrediction: 'Wild Card Prediction', csvWager: 'Wild Card Prediction Wager', emoji: '🎲', title: 'Wildcard', unit: '' },
+]
+
+// Simple CSV parser
+function parseCSV(csvText) {
+  const lines = csvText.split('\n')
+  if (lines.length < 2) return []
+
+  // Parse header row
+  const headers = parseCSVLine(lines[0])
+
+  // Parse data rows
+  const data = []
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i].trim() === '') continue
+    const values = parseCSVLine(lines[i])
+    const row = {}
+    headers.forEach((header, index) => {
+      row[header] = values[index] || ''
+    })
+    data.push(row)
+  }
+
+  return data
+}
+
+// Parse a single CSV line (handles quoted values with commas)
+function parseCSVLine(line) {
+  const result = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  result.push(current.trim())
+
+  return result
 }
 
 export default function ViewBets() {
   const [bets, setBets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    const storedBets = JSON.parse(localStorage.getItem('tripleBBets') || '[]')
-    setBets(storedBets)
+    async function fetchBets() {
+      try {
+        setLoading(true)
+
+        // Fetch from Google Sheets
+        const response = await fetch(GOOGLE_SHEET_CSV_URL)
+        if (!response.ok) throw new Error('Failed to fetch bets')
+
+        const csvText = await response.text()
+        const sheetData = parseCSV(csvText)
+
+        // Transform sheet data to our format
+        const transformedBets = sheetData.map(row => {
+          const predictions = {}
+          const wagers = {}
+          let totalWager = 0
+
+          MILESTONE_CONFIG.forEach(config => {
+            const prediction = row[config.csvPrediction]
+            const wager = parseInt(row[config.csvWager]) || 0
+
+            if (prediction) {
+              predictions[config.title] = {
+                value: prediction,
+                unit: config.unit,
+                emoji: config.emoji,
+              }
+            }
+            if (wager > 0) {
+              wagers[config.title] = wager
+              totalWager += wager
+            }
+          })
+
+          return {
+            name: row['Name'] || 'Anonymous',
+            timestamp: row['Timestamp'],
+            predictions,
+            wagers,
+            totalWager,
+          }
+        })
+
+        setBets(transformedBets)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching bets:', err)
+        setError('Failed to load bets. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBets()
   }, [])
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-bounce">🍼</div>
+          <p className="text-gray-600">Loading bets...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-4 py-16">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
+          <div className="text-6xl mb-4">😕</div>
+          <h2 className="font-display text-2xl font-bold text-brown mb-4">
+            Oops!
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="inline-block bg-sage hover:bg-sage-dark text-white font-bold py-3 px-6 rounded-full transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   if (bets.length === 0) {
     return (
@@ -58,72 +192,64 @@ export default function ViewBets() {
         </div>
 
         <div className="grid gap-6">
-          {bets.map((bet, index) => {
-            // Handle both old format and new format
-            const predictions = bet.predictions || bet
-            const wagers = bet.wagers || {}
-            const hasWagers = Object.keys(wagers).length > 0
-
-            return (
-              <div key={index} className="bg-white rounded-2xl shadow-lg p-6">
-                <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-sage/20 rounded-full flex items-center justify-center">
-                      <span className="text-xl font-bold text-sage-dark">
-                        {bet.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg text-brown">{bet.name}</h3>
-                      <p className="text-sm text-gray-500">
-                        Submitted {new Date(bet.submittedAt).toLocaleDateString()}
-                      </p>
+          {bets.map((bet, index) => (
+            <div key={index} className="bg-white rounded-2xl shadow-lg p-6">
+              <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-sage/20 rounded-full flex items-center justify-center">
+                    <span className="text-xl font-bold text-sage-dark">
+                      {bet.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg text-brown">{bet.name}</h3>
+                    <p className="text-sm text-gray-500">
+                      {bet.timestamp ? `Submitted ${new Date(bet.timestamp).toLocaleDateString()}` : 'Recently submitted'}
+                    </p>
+                  </div>
+                </div>
+                {bet.totalWager > 0 && (
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">Total Wagered</div>
+                    <div className="font-bold text-gold-dark flex items-center gap-1">
+                      <span>🍼</span> {bet.totalWager} Binky Bucks
                     </div>
                   </div>
-                  {hasWagers && (
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">Total Wagered</div>
-                      <div className="font-bold text-gold-dark flex items-center gap-1">
-                        <span>🍼</span> {bet.totalSpent || 100} Binky Bucks
+                )}
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                {MILESTONE_CONFIG.map(config => {
+                  const prediction = bet.predictions[config.title]
+                  const wager = bet.wagers[config.title]
+
+                  if (!prediction) return null
+
+                  return (
+                    <div
+                      key={config.title}
+                      className={`rounded-lg p-3 ${wager > 0 ? 'bg-sage/10 border border-sage/30' : 'bg-cream'}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <span className="text-lg mr-2">{config.emoji}</span>
+                          <span className="font-medium text-brown">{config.title}:</span>
+                          <span className="ml-2 text-gray-700">
+                            {prediction.value} {prediction.unit}
+                          </span>
+                        </div>
+                        {wager > 0 && (
+                          <div className="shrink-0 bg-gold/20 text-gold-dark text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                            🍼 {wager}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {Object.entries(predictions).map(([key, value]) => {
-                    if (!value || key === 'name' || key === 'submittedAt') return null
-
-                    const info = MILESTONE_INFO[key] || {
-                      emoji: '📌',
-                      title: key.replace(/([A-Z])/g, ' $1').trim(),
-                      unit: ''
-                    }
-                    const wager = wagers[key]
-
-                    return (
-                      <div key={key} className={`rounded-lg p-3 ${wager > 0 ? 'bg-sage/10 border border-sage/30' : 'bg-cream'}`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <span className="text-lg mr-2">{info.emoji}</span>
-                            <span className="font-medium text-brown">{info.title}:</span>
-                            <span className="ml-2 text-gray-700">
-                              {value} {info.unit}
-                            </span>
-                          </div>
-                          {wager > 0 && (
-                            <div className="shrink-0 bg-gold/20 text-gold-dark text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                              🍼 {wager}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                  )
+                })}
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
