@@ -91,8 +91,8 @@ function PixelPodium({ top3 }) {
   ]
 
   return (
-    <div className="relative w-full max-w-md mx-auto h-48 mb-8">
-      <svg viewBox="0 0 160 120" className="w-full h-full" style={{ imageRendering: 'pixelated' }}>
+    <div className="relative w-full max-w-md mx-auto mb-8">
+      <svg viewBox="0 0 160 120" className="w-full h-auto" style={{ imageRendering: 'pixelated' }}>
         {positions.map((pos) => {
           const bettor = top3[pos.place - 1]
           const yBase = 120 - pos.height
