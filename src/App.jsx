@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
-import FloatingIcons from './components/FloatingIcons'
+import NurseryBackground from './components/NurseryBackground'
 import Home from './pages/Home'
 import Bet from './pages/Bet'
 import ViewBets from './pages/ViewBets'
@@ -10,7 +10,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col relative">
-        <FloatingIcons />
+        <NurseryBackground />
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />

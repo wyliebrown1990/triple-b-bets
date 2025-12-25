@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import TauntBubble from '../components/TauntBubble'
+import CountdownTimer from '../components/CountdownTimer'
 
 const TOTAL_BUCKS = 100
 const DEFAULT_ODDS = 2.0 // Default multiplier when no bets exist
@@ -391,6 +392,10 @@ export default function Bet() {
                 style={{ width: `${(totalSpent / TOTAL_BUCKS) * 100}%` }}
               />
             </div>
+            {/* Compact countdown */}
+            <div className="mt-2 flex justify-center">
+              <CountdownTimer compact />
+            </div>
           </div>
         </div>
 
@@ -406,8 +411,13 @@ export default function Bet() {
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="Enter your name"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-sage focus:outline-none transition-colors"
+              className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition-colors ${
+                name.trim() === '' ? 'border-gray-200 focus:border-sage' : 'border-sage bg-sage/5'
+              }`}
             />
+            {name.trim() === '' && (
+              <p className="text-sm text-gray-500 mt-1">Required to submit your bets</p>
+            )}
           </div>
 
           <div className="bg-gold/10 rounded-lg p-4 mb-6">
@@ -512,9 +522,34 @@ export default function Bet() {
 
           {/* Submit */}
           <div className="mt-8">
-            {remaining > 0 && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-center text-red-700">
-                You still have <strong>{remaining} Binky Bucks</strong> left to spend!
+            {/* Validation Summary */}
+            {!canSubmit && (
+              <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="font-bold text-amber-800 mb-2">Before you can submit:</p>
+                <ul className="text-sm text-amber-700 space-y-1">
+                  {name.trim() === '' && (
+                    <li className="flex items-center gap-2">
+                      <span className="text-amber-500">○</span> Enter your name above
+                    </li>
+                  )}
+                  {remaining > 0 && (
+                    <li className="flex items-center gap-2">
+                      <span className="text-amber-500">○</span> Spend all {remaining} remaining Binky Bucks on your predictions
+                    </li>
+                  )}
+                  {Object.keys(wagers).length === 0 && remaining === 0 && (
+                    <li className="flex items-center gap-2">
+                      <span className="text-amber-500">○</span> Add at least one wager to a prediction
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+
+            {/* Success state - ready to submit */}
+            {canSubmit && !submitting && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-center text-green-700">
+                All set! You've wagered all {TOTAL_BUCKS} Binky Bucks.
               </div>
             )}
 
@@ -531,7 +566,7 @@ export default function Bet() {
                 ? 'Submitting...'
                 : canSubmit
                   ? 'Lock In My Bets! 🔒'
-                  : `Spend All ${TOTAL_BUCKS} Binky Bucks First!`}
+                  : 'Complete the requirements above'}
             </button>
 
             <p className="text-center text-sm text-gray-500 mt-4">

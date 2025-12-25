@@ -14,8 +14,12 @@ A playful family betting pool for baby milestones with pixel art aesthetic. Buil
 
 ---
 
-## Sprint 1: Countdown Timer & Nursery Background
+## Sprint 1: Countdown Timer & Nursery Background ✅ COMPLETED
 **Goal:** Quick visual wins that enhance the atmosphere
+
+**Status:** COMPLETED
+- ✅ 1A: Countdown Timer - Full and compact versions
+- ✅ 1B: Nursery Background - 8 pixel art items (crib, teddy, bottle, rattle, duck, blocks, pacifier, mobile)
 
 ### 1A: Countdown Timer
 **Estimated Effort:** 1-2 hours
@@ -814,13 +818,13 @@ src/
 
 ## Sprint Summary
 
-| Sprint | Features | Est. Time | Dependencies |
-|--------|----------|-----------|--------------|
-| 1 | Countdown Timer, Nursery Background | 3-5 hrs | None |
-| 2 | Baby Reactions, Sound Effects | 4-6 hrs | None |
-| 3 | Leaderboard, Achievement Badges | 5-7 hrs | None |
-| 4 | Trash Talk, Side Bets | 6-8 hrs | New Google Forms |
-| 5 | Admin, Results Reveal, Celebrations | 9-12 hrs | New Google Form, All other features |
+| Sprint | Features | Est. Time | Dependencies | Status |
+|--------|----------|-----------|--------------|--------|
+| 1 | Countdown Timer, Nursery Background | 3-5 hrs | None | ✅ DONE |
+| 2 | Baby Reactions, Sound Effects | 4-6 hrs | None | 🔲 TODO |
+| 3 | Leaderboard, Achievement Badges | 5-7 hrs | None | 🔲 TODO |
+| 4 | Trash Talk, Side Bets | 6-8 hrs | New Google Forms | 🔲 TODO |
+| 5 | Admin, Results Reveal, Celebrations | 9-12 hrs | New Google Form, All other features | 🔲 TODO |
 
 **Total Estimated Time:** 27-38 hours
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import PixelBaby from '../components/PixelBaby'
+import CountdownTimer from '../components/CountdownTimer'
 
 export default function Home() {
   return (
@@ -53,6 +54,11 @@ export default function Home() {
               100% { transform: rotate(360deg); }
             }
           `}</style>
+
+          {/* Countdown Timer */}
+          <div className="mt-8">
+            <CountdownTimer />
+          </div>
         </div>
       </section>
 
