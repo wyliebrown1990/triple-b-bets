@@ -50,6 +50,12 @@ export default function Header() {
           >
             <span className="hidden sm:inline">⚔️</span> 1v1
           </Link>
+          <Link
+            to="/results"
+            className={`font-medium transition-colors flex items-center gap-1 ${isActive('/results') ? 'text-sage-dark' : 'text-gray-600 hover:text-sage'}`}
+          >
+            <span className="hidden sm:inline">🎁</span> Results
+          </Link>
         </div>
       </nav>
     </header>

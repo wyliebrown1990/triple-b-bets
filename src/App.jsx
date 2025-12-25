@@ -8,6 +8,8 @@ import ViewBets from './pages/ViewBets'
 import Leaderboard from './pages/Leaderboard'
 import TrashTalk from './pages/TrashTalk'
 import SideBets from './pages/SideBets'
+import Admin from './pages/Admin'
+import Results from './pages/Results'
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/trash-talk" element={<TrashTalk />} />
           <Route path="/side-bets" element={<SideBets />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/results" element={<Results />} />
         </Routes>
         <Footer />
       </div>
